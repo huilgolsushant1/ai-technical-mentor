@@ -10,3 +10,12 @@ class StartAssessmentRequest(BaseModel):
 class StartAssessmentResponse(BaseModel):
     session_id: AssessmentSession
     question: str
+
+
+class SubmitAnswerRequest(BaseModel):
+    session_id: str
+    answer: str
+
+
+class SubmitAnswerResponse(BaseModel):
+    next_question: str

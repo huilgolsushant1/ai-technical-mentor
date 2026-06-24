@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.models.assessment_models import (
     StartAssessmentRequest,
-    StartAssessmentResponse
+    StartAssessmentResponse, SubmitAnswerResponse, SubmitAnswerRequest
 )
 
 from app.services.question_service import QuestionService
@@ -35,6 +35,11 @@ def start_assessment(
         request.target_role
     )
 
+    session_service.add_question(
+        session,
+        question
+    )
+
     return StartAssessmentResponse(
         session_id=session,
         question=question
@@ -49,3 +54,38 @@ def get_assessment_session(
     )
 
     return session
+
+@router.post(
+    "answer",
+    response_model=SubmitAnswerResponse
+)
+def submit_answer(
+        request: SubmitAnswerRequest
+):
+    session = session_store.get_session(
+        request.session_id
+    )
+
+    if not session:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    session_service.submit_answer(
+        session,
+        request.answer
+    )
+
+    next_question = (
+        question_service.generate_next_question()
+    )
+
+    session_service.add_question(
+        session,
+        next_question
+    )
+
+    return SubmitAnswerResponse(
+        next_question=next_question
+    )

@@ -11,3 +11,11 @@ class AssessmentSession(BaseModel):
     session_id: str
     target_role: str
     interactions: list[AssessmentInteraction] = []
+
+class SubmitAnswerRequest(BaseModel):
+    session_id: str
+    answer: str
+
+
+class SubmitAnswerResponse(BaseModel):
+    next_question: str

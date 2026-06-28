@@ -1,91 +1,52 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from app.models.assessment_models import (
     StartAssessmentRequest,
-    StartAssessmentResponse, SubmitAnswerResponse, SubmitAnswerRequest
+    StartAssessmentResponse,
+    SubmitAnswerRequest,
+    SubmitAnswerResponse,
 )
 
+from app.services.assessment_service import AssessmentService
+from app.services.evaluation_service import EvaluationService
 from app.services.question_service import QuestionService
 from app.services.session_service import SessionService
-from app.services.session_store import SessionStore
-
-session_store = SessionStore()
+from app.store.session_store import SessionStore
 
 router = APIRouter(
     prefix="/assessment",
-    tags=["Assessment"]
+    tags=["Assessment"],
 )
 
+session_store = SessionStore()
+
+session_service = SessionService(session_store)
 question_service = QuestionService()
-session_service = SessionService(
-    session_store
+evaluation_service = EvaluationService()
+
+assessment_service = AssessmentService(
+    session_service=session_service,
+    question_service=question_service,
+    evaluation_service=evaluation_service,
 )
+
 
 @router.post(
     "/start",
-    response_model=StartAssessmentResponse
+    response_model=StartAssessmentResponse,
 )
-def start_assessment(
-        request: StartAssessmentRequest
-):
-    session = session_service.create_session(
-        request.target_role)
+def start_assessment(request: StartAssessmentRequest):
+    return assessment_service.start_assessment(request)
 
-    question = question_service.generate_first_question(
-        request.target_role
-    )
-
-    session_service.add_question(
-        session,
-        question
-    )
-
-    return StartAssessmentResponse(
-        session_id=session,
-        question=question
-    )
-
-@router.get("/{session_id}")
-def get_assessment_session(
-        session_id: str
-):
-    session = session_store.get_session(
-        session_id
-    )
-
-    return session
 
 @router.post(
-    "answer",
-    response_model=SubmitAnswerResponse
+    "/answer",
+    response_model=SubmitAnswerResponse,
 )
-def submit_answer(
-        request: SubmitAnswerRequest
-):
-    session = session_store.get_session(
-        request.session_id
-    )
+def submit_answer(request: SubmitAnswerRequest):
+    return assessment_service.submit_answer(request)
 
-    if not session:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found"
-        )
 
-    session_service.submit_answer(
-        session,
-        request.answer
-    )
-
-    next_question = (
-        question_service.generate_next_question()
-    )
-
-    session_service.add_question(
-        session,
-        next_question
-    )
-
-    return SubmitAnswerResponse(
-        next_question=next_question
-    )
+@router.get("/{session_id}")
+def get_assessment_session(session_id: str):
+    return assessment_service.get_assessment(session_id)

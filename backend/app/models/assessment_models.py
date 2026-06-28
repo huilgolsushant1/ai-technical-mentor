@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from app.models.domain_models import AssessmentSession
+from app.models.interview_evaluation import InterviewEvaluation
 
 
 class StartAssessmentRequest(BaseModel):
@@ -18,4 +19,5 @@ class SubmitAnswerRequest(BaseModel):
 
 
 class SubmitAnswerResponse(BaseModel):
+    interview_evaluation: InterviewEvaluation
     next_question: str

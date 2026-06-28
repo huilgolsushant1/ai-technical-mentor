@@ -1,6 +1,6 @@
 import uuid
 
-from app.services.session_store import SessionStore
+from app.store.session_store import SessionStore
 from app.models.domain_models import (
     AssessmentSession,
     AssessmentInteraction
@@ -12,7 +12,7 @@ class SessionService:
             self,
             session_store: SessionStore
     ):
-        self.session_store = session_store
+        self._session_store = session_store
 
     # Method for creating a new assessment session
     def create_session(
@@ -24,7 +24,7 @@ class SessionService:
             target_role=target_role
         )
 
-        self.session_store.save_session(session)
+        self._session_store.save_session(session)
 
         return session
 
@@ -63,3 +63,6 @@ class SessionService:
         )
 
         interaction.answer = answer
+
+    def get_session(self, session_id: str):
+        return self._session_store.get_session(session_id)

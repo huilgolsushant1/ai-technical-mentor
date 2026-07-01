@@ -12,6 +12,9 @@ from app.services.evaluation_service import EvaluationService
 from app.services.question_service import QuestionService
 from app.services.session_service import SessionService
 from app.store.session_store import SessionStore
+from app.services.llm_service import LLMService
+
+llm_service = LLMService()
 
 router = APIRouter(
     prefix="/assessment",
@@ -46,7 +49,8 @@ def start_assessment(request: StartAssessmentRequest):
 def submit_answer(request: SubmitAnswerRequest):
     return assessment_service.submit_answer(request)
 
-
 @router.get("/{session_id}")
 def get_assessment_session(session_id: str):
     return assessment_service.get_assessment(session_id)
+
+
